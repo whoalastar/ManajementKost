@@ -93,4 +93,8 @@ class Room extends Model
     {
         return $query->where('status', self::STATUS_MAINTENANCE);
     }
+    public function getPrimaryPhotoAttribute()
+    {
+        return $this->photos->where('is_primary', true)->first() ?? $this->photos->first();
+    }
 }

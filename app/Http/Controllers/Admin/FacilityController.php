@@ -67,8 +67,12 @@ class FacilityController extends Controller
     /**
      * Show the form for editing the specified facility
      */
+    /**
+     * Show the form for editing the specified facility
+     */
     public function edit(Facility $facility): View
     {
+        $facility->loadCount('rooms');
         $types = Facility::types();
         return view('admin.facilities.edit', compact('facility', 'types'));
     }

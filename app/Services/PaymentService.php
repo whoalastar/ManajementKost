@@ -63,7 +63,15 @@ class PaymentService
 
             $proofPath = null;
             if ($proofImage) {
-                $proofPath = $proofImage->store('payments/' . $invoice->id, 'public');
+                $filename = time() . '_' . uniqid() . '.' . $proofImage->getClientOriginalExtension();
+                $path = 'uploads/payments/' . $invoice->id;
+                
+                if (!file_exists(public_path($path))) {
+                    mkdir(public_path($path), 0755, true);
+                }
+                
+                $proofImage->move(public_path($path), $filename);
+                $proofPath = $path . '/' . $filename;
             }
 
             $payment = Payment::create([
@@ -113,12 +121,19 @@ class PaymentService
     public function uploadProof(Payment $payment, UploadedFile $file): Payment
     {
         // Delete old proof if exists
-        if ($payment->proof_image) {
-            Storage::disk('public')->delete($payment->proof_image);
+        if ($payment->proof_image && file_exists(public_path($payment->proof_image))) {
+            unlink(public_path($payment->proof_image));
         }
 
-        $path = $file->store('payments/' . $payment->invoice_id, 'public');
-        $payment->update(['proof_image' => $path]);
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $path = 'uploads/payments/' . $payment->invoice_id;
+
+        if (!file_exists(public_path($path))) {
+            mkdir(public_path($path), 0755, true);
+        }
+
+        $file->move(public_path($path), $filename);
+        $payment->update(['proof_image' => $path . '/' . $filename]);
 
         return $payment->fresh();
     }
@@ -132,8 +147,8 @@ class PaymentService
             $invoice = $payment->invoice;
 
             // Delete proof image
-            if ($payment->proof_image) {
-                Storage::disk('public')->delete($payment->proof_image);
+            if ($payment->proof_image && file_exists(public_path($payment->proof_image))) {
+                unlink(public_path($payment->proof_image));
             }
 
             ActivityLogService::logDelete($payment, "Menghapus pembayaran");

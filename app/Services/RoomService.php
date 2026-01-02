@@ -143,11 +143,19 @@ class RoomService
     {
         foreach ($files as $index => $file) {
             if ($file instanceof UploadedFile) {
-                $path = $file->store('rooms/' . $room->id, 'public');
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = 'uploads/rooms/' . $room->id;
+                
+                // Ensure directory exists
+                if (!file_exists(public_path($path))) {
+                    mkdir(public_path($path), 0755, true);
+                }
+
+                $file->move(public_path($path), $filename);
                 
                 RoomPhoto::create([
                     'room_id' => $room->id,
-                    'path' => $path,
+                    'path' => $path . '/' . $filename,
                     'filename' => $file->getClientOriginalName(),
                     'is_primary' => $index === 0 && $room->photos()->count() === 0,
                     'sort_order' => $room->photos()->count() + $index,
@@ -161,7 +169,9 @@ class RoomService
      */
     public function deletePhoto(RoomPhoto $photo): bool
     {
-        Storage::disk('public')->delete($photo->path);
+        if (file_exists(public_path($photo->path))) {
+            unlink(public_path($photo->path));
+        }
         return $photo->delete();
     }
 

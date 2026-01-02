@@ -20,13 +20,24 @@ class SettingController extends Controller
      */
     public function index(): View
     {
-        $profile = $this->settingService->getProfileSettings();
-        $payment = $this->settingService->getPaymentSettings();
-        $invoice = $this->settingService->getInvoiceSettings();
-        $email = $this->settingService->getEmailSettings();
-        $rules = $this->settingService->getKostRules();
+        $settings = $this->settingService->getAllSettings();
 
-        return view('admin.settings.index', compact('profile', 'payment', 'invoice', 'email', 'rules'));
+        return view('admin.settings.index', compact('settings'));
+    }
+
+    /**
+     * Update settings by group
+     */
+    public function update(Request $request): RedirectResponse
+    {
+        $group = $request->input('group');
+        $settings = $request->input('settings', []);
+        
+        foreach ($settings as $key => $value) {
+            $this->settingService->set($key, $value);
+        }
+
+        return back()->with('success', 'Pengaturan berhasil disimpan.');
     }
 
     /**

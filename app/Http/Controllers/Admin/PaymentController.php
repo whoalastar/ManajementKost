@@ -103,6 +103,21 @@ class PaymentController extends Controller
     }
 
     /**
+     * Reject payment
+     */
+    public function reject(Payment $payment): RedirectResponse|JsonResponse
+    {
+        $payment->rejected_at = now();
+        $payment->save();
+
+        if (request()->wantsJson()) {
+            return response()->json(['message' => 'Pembayaran ditolak', 'payment' => $payment]);
+        }
+
+        return back()->with('success', 'Pembayaran ditolak.');
+    }
+
+    /**
      * Upload proof image
      */
     public function uploadProof(Request $request, Payment $payment): RedirectResponse|JsonResponse

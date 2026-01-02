@@ -189,8 +189,9 @@ class InvoiceController extends Controller
     public function download(Invoice $invoice): Response
     {
         $invoice->load(['tenant', 'room', 'payments']);
+        $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->get();
 
-        $pdf = Pdf::loadView('admin.invoices.pdf', compact('invoice'));
+        $pdf = Pdf::loadView('admin.invoices.pdf', compact('invoice', 'paymentMethods'));
 
         return $pdf->download("invoice-{$invoice->invoice_number}.pdf");
     }

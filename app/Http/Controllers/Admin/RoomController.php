@@ -10,6 +10,7 @@ use App\Services\RoomService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class RoomController extends Controller
@@ -41,7 +42,8 @@ class RoomController extends Controller
     public function create(): View
     {
         $roomTypes = RoomType::all();
-        return view('admin.rooms.create', compact('roomTypes'));
+        $facilities = \App\Models\Facility::where('type', 'room')->get();
+        return view('admin.rooms.create', compact('roomTypes', 'facilities'));
     }
 
     /**
@@ -50,7 +52,11 @@ class RoomController extends Controller
     public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'code' => 'required|string|unique:rooms,code',
+            'code' => [
+                'required',
+                'string',
+                Rule::unique('rooms', 'code')->whereNull('deleted_at'),
+            ],
             'name' => 'required|string|max:255',
             'room_type_id' => 'nullable|exists:room_types,id',
             'floor' => 'required|integer|min:1',
@@ -94,7 +100,8 @@ class RoomController extends Controller
     {
         $room->load(['photos', 'facilities']);
         $roomTypes = RoomType::all();
-        return view('admin.rooms.edit', compact('room', 'roomTypes'));
+        $facilities = \App\Models\Facility::where('type', 'room')->get();
+        return view('admin.rooms.edit', compact('room', 'roomTypes', 'facilities'));
     }
 
     /**
@@ -103,7 +110,11 @@ class RoomController extends Controller
     public function update(Request $request, Room $room): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
-            'code' => 'required|string|unique:rooms,code,' . $room->id,
+            'code' => [
+                'required',
+                'string',
+                Rule::unique('rooms', 'code')->ignore($room->id)->whereNull('deleted_at'),
+            ],
             'name' => 'required|string|max:255',
             'room_type_id' => 'nullable|exists:room_types,id',
             'floor' => 'required|integer|min:1',

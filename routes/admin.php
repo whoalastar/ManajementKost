@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\FacilityController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PaymentMethodController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\RoomTypeController;
@@ -91,7 +92,9 @@ Route::middleware('admin.auth')->group(function () {
     Route::resource('invoices', InvoiceController::class);
 
     // Payments
+    Route::resource('payment-methods', PaymentMethodController::class);
     Route::post('payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
+    Route::post('payments/{payment}/reject', [PaymentController::class, 'reject'])->name('payments.reject');
     Route::post('payments/{payment}/upload-proof', [PaymentController::class, 'uploadProof'])->name('payments.upload-proof');
     Route::get('payments/summary', [PaymentController::class, 'summary'])->name('payments.summary');
     Route::resource('payments', PaymentController::class)->except(['edit', 'update']);
@@ -118,6 +121,7 @@ Route::middleware('admin.auth')->group(function () {
     // Settings
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('index');
+        Route::put('/', [SettingController::class, 'update'])->name('update');
         Route::post('profile', [SettingController::class, 'updateProfile'])->name('profile');
         Route::post('logo', [SettingController::class, 'uploadLogo'])->name('logo');
         Route::post('payment', [SettingController::class, 'updatePayment'])->name('payment');

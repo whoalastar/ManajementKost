@@ -17,6 +17,26 @@ class SettingService
     }
 
     /**
+     * Get all settings as key-value array
+     */
+    public function getAllSettings(): array
+    {
+        $settings = Setting::all();
+        $result = [];
+        
+        foreach ($settings as $setting) {
+            // If value is array with single element or just wrapped, unwrap it
+            $value = $setting->value;
+            if (is_array($value) && count($value) === 1 && isset($value[0])) {
+                $value = $value[0];
+            }
+            $result[$setting->key] = $value;
+        }
+        
+        return $result;
+    }
+
+    /**
      * Get single setting
      */
     public function get(string $key, $default = null)
